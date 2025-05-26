@@ -1,0 +1,76 @@
+#include <stdio.h>
+#include <stdbool.h>
+
+#define MAX 10
+
+int main() {
+    int n, m; // Number of processes and resource types
+    int alloc[MAX][MAX], max[MAX][MAX], avail[MAX];
+    int need[MAX][MAX], finish[MAX] = {0};
+    int i, j;
+
+    printf("Enter number of processes: ");
+    scanf("%d", &n);
+    printf("Enter number of resource types: ");
+    scanf("%d", &m);
+
+    printf("Enter Allocation Matrix (%d x %d):\n", n, m);
+    for (i = 0; i < n; i++)
+        for (j = 0; j < m; j++)
+            scanf("%d", &alloc[i][j]);
+
+    printf("Enter Maximum Matrix (%d x %d):\n", n, m);
+    for (i = 0; i < n; i++)
+        for (j = 0; j < m; j++)
+            scanf("%d", &max[i][j]);
+
+    printf("Enter Available Resources (%d):\n", m);
+    for (i = 0; i < m; i++)
+        scanf("%d", &avail[i]);
+
+    // Calculate Need Matrix
+    for (i = 0; i < n; i++)
+        for (j = 0; j < m; j++)
+            need[i][j] = max[i][j] - alloc[i][j];
+
+    // Deadlock Detection Logic
+    bool progress;
+    do {
+        progress = false;
+        for (i = 0; i < n; i++) {
+            if (!finish[i]) {
+                bool canRun = true;
+                for (j = 0; j < m; j++) {
+                    if (need[i][j] > avail[j]) {
+                        canRun = false;
+                        break;
+                    }
+                }
+
+                if (canRun) {
+                    for (j = 0; j < m; j++)
+                        avail[j] += alloc[i][j];
+                    finish[i] = 1;
+                    progress = true;
+                }
+            }
+        }
+    } while (progress);
+
+    // Output
+    bool deadlock = false;
+    printf("\nProcesses in Deadlock: ");
+    for (i = 0; i < n; i++) {
+        if (!finish[i]) {
+            printf("P%d ", i);
+            deadlock = true;
+        }
+    }
+
+    if (!deadlock)
+        printf("None. System is in a safe state.\n");
+    else
+        printf("\nDeadlock detected!\n");
+
+    return 0;
+}
